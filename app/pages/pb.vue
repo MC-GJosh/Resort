@@ -1,52 +1,10 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import BookingConfirmationModal from '~/components/BookingConfirmationModal.vue';
 import PickleballReservationModal from '~/components/PickleballReservationModal.vue';
 
-// --- 1. Court Database ---
-const courts = [
-  {
-    id: 'court1',
-    name: 'Court 1',
-    rate: 150,
-    location: 'Left Side',
-    surface: 'Standard Hard',
-    description: 'Well-maintained court perfect for recreational and competitive play.',
-    // features: ['LED Lighting', 'Professional Net', 'Water Station', 'Bench Seating'],
-    image: '/pickballcourtsolo.jpg'
-    },
-  {
-    id: 'court2',
-    name: 'Court 2',
-    rate: 150,
-    location: 'Left Middle',
-    surface: 'Standard Hard',
-    description: 'Well-maintained court perfect for recreational and competitive play.',
-    // features: ['LED Lighting', 'Professional Net', 'Scoreboard', 'Shade Cover'],
-    image: '/pickballcourtsolo.jpg'
-  },
-  {
-    id: 'court3',
-    name: 'Court 3',
-    rate: 150,
-    location: 'Right Middle',
-    surface: 'Standard Hard',
-    description: 'Well-maintained court perfect for recreational and competitive play.',
-    // features: ['LED Lighting', 'Professional Net', 'Viewing Area', 'Wind Screen'],
-    image: '/pickballcourtsolo.jpg'
-  },
-  {
-    id: 'court4',
-    name: 'Court 4',
-    rate: 150,
-    location: 'Right Side',
-    surface: 'Premium Hard',
-    description: 'Well-maintained court perfect for recreational and competitive play.',
-    // features: ['Premium Lighting', 'Tournament Net', 'Sound System', 'VIP Seating'],
-    image: '/pickballcourtsolo.jpg'
-  }
-];
-
+const courts = ref([]);
+const bookings = ref([]);
 const showReservationModal = ref(false);
 const showConfirmation = ref(false);
 const initialCourtId = ref('');
@@ -55,15 +13,46 @@ const formatPrice = (price) => {
   return '₱' + price.toLocaleString();
 };
 
+const fetchData = async () => {
+  const { data: courtsData } = await useFetch('/api/courts');
+  if (courtsData.value) {
+    courts.value = courtsData.value;
+  }
+
+  const { data: bookingsData } = await useFetch('/api/bookings');
+  if (bookingsData.value) {
+    bookings.value = bookingsData.value;
+  }
+};
+
+onMounted(() => {
+  fetchData();
+});
+
 const selectCourt = (court) => {
   initialCourtId.value = court.id;
   showReservationModal.value = true;
 };
 
-const handleBookingSubmit = (bookingData) => {
-  console.log('Booking Submitted:', bookingData);
-  showReservationModal.value = false;
-  showConfirmation.value = true;
+const handleBookingSubmit = async (bookingData) => {
+  try {
+    const { data, error } = await useFetch('/api/bookings', {
+      method: 'POST',
+      body: bookingData
+    });
+
+    if (error.value) {
+      alert(error.value.statusMessage || 'Booking failed');
+    } else {
+      console.log('Booking Submitted:', data.value);
+      showReservationModal.value = false;
+      showConfirmation.value = true;
+      // Refresh bookings to show the new one as taken
+      fetchData();
+    }
+  } catch (e) {
+    alert('An unexpected error occurred');
+  }
 };
 </script>
 
@@ -120,6 +109,7 @@ const handleBookingSubmit = (bookingData) => {
   <PickleballReservationModal 
     :isVisible="showReservationModal" 
     :courts="courts"
+    :bookings="bookings"
     :initialCourtId="initialCourtId"
     @close="showReservationModal = false"
     @submit="handleBookingSubmit"

@@ -8,6 +8,10 @@ const props = defineProps({
     type: Array,
     required: true
   },
+  bookings: {
+    type: Array,
+    default: () => []
+  },
   initialCourtId: {
     type: String,
     default: ''
@@ -44,6 +48,15 @@ const timeSlots = [
   '12:00 PM - 1:00 PM', '1:00 PM - 2:00 PM', '2:00 PM - 3:00 PM',
   '3:00 PM - 4:00 PM', '4:00 PM - 5:00 PM', '5:00 PM - 6:00 PM'
 ];
+
+const isSlotBooked = (slot) => {
+  if (!booking.value.date || !booking.value.selectedCourtId) return false;
+  return props.bookings.some(b => 
+    b.courtId === booking.value.selectedCourtId && 
+    b.date === booking.value.date && 
+    b.time === slot
+  );
+};
 
 const selectedCourt = computed(() => {
   return props.courts.find(c => c.id === booking.value.selectedCourtId) || props.courts[0];
@@ -104,16 +117,20 @@ const submitBooking = () => {
                 v-for="slot in timeSlots" 
                 :key="slot" 
                 class="time-slot-checkbox" 
-                :class="{ active: booking.selectedTimeSlots.includes(slot) }"
+                :class="{ 
+                  active: booking.selectedTimeSlots.includes(slot),
+                  booked: isSlotBooked(slot)
+                }"
               >
                 <input 
                   type="checkbox" 
                   :value="slot" 
                   v-model="booking.selectedTimeSlots" 
                   style="display: none;"
-                  :disabled="!booking.date"
+                  :disabled="!booking.date || isSlotBooked(slot)"
                 >
                 {{ slot }}
+                <span v-if="isSlotBooked(slot)" class="booked-label">(Booked)</span>
               </label>
             </div>
             <p v-if="!booking.date" class="hint-text">Please select a date first.</p>
@@ -280,6 +297,20 @@ input:focus, select:focus { outline: none; border-color: #D59F4A; }
 }
 .confirm-btn:disabled { background: #ccc; cursor: not-allowed; }
 .confirm-btn:hover:not(:disabled) { background: #b58334; }
+
+.time-slot-checkbox.booked {
+  background: #eee;
+  color: #aaa;
+  cursor: not-allowed;
+  border-color: #eee;
+}
+
+.booked-label {
+  display: block;
+  font-size: 0.7rem;
+  color: #e74c3c;
+  margin-top: 2px;
+}
 
 @media (max-width: 768px) {
   .modal-grid { grid-template-columns: 1fr; }

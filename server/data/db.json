@@ -1,0 +1,57 @@
+{
+    "users": [
+        {
+            "id": 1,
+            "username": "admin",
+            "password": "password123",
+            "role": "admin",
+            "name": "Admin User"
+        },
+        {
+            "id": 2,
+            "username": "user",
+            "password": "password123",
+            "role": "user",
+            "name": "Regular User"
+        }
+    ],
+    "courts": [
+        {
+            "id": "court1",
+            "name": "Court 1",
+            "rate": 150,
+            "location": "Left Side",
+            "surface": "Standard Hard",
+            "description": "Well-maintained court perfect for recreational and competitive play.",
+            "image": "/pickballcourtsolo.jpg"
+        },
+        {
+            "id": "court2",
+            "name": "Court 2",
+            "rate": 150,
+            "location": "Left Middle",
+            "surface": "Standard Hard",
+            "description": "Well-maintained court perfect for recreational and competitive play.",
+            "image": "/pickballcourtsolo.jpg"
+        },
+        {
+            "id": "court3",
+            "name": "Court 3",
+            "rate": 150,
+            "location": "Right Middle",
+            "surface": "Standard Hard",
+            "description": "Well-maintained court perfect for recreational and competitive play.",
+            "image": "/pickballcourtsolo.jpg"
+        },
+        {
+            "id": "court4",
+            "name": "Court 4",
+            "rate": 150,
+            "location": "Right Side",
+            "surface": "Premium Hard",
+            "description": "Well-maintained court perfect for recreational and competitive play.",
+            "image": "/pickballcourtsolo.jpg"
+        }
+    ],
+    "bookings": []
+}
