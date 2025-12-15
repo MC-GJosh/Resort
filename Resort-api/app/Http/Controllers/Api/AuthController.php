@@ -35,10 +35,20 @@ class AuthController extends Controller
                 'role' => 'user',
             ]);
 
-            // Send verification email
-            event(new \Illuminate\Auth\Events\Registered($user));
-
             DB::commit();
+
+            // Try to send email, but don't crash if it fails
+            try {
+                event(new \Illuminate\Auth\Events\Registered($user));
+            } catch (\Exception $e) {
+                // Log the error but allow registration to complete
+                \Illuminate\Support\Facades\Log::error('Email sending failed: ' . $e->getMessage());
+
+                return response()->json([
+                    'message' => 'Registration successful, but verification email could not be sent. Please contact admin or try login.',
+                    'user' => $user,
+                ], 201);
+            }
 
             return response()->json([
                 'message' => 'Registration successful. Please check your email to verify your account.',
@@ -47,10 +57,6 @@ class AuthController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            // If it's an SMTP error, provide a clear message
-            if (str_contains($e->getMessage(), 'Authentication failed')) {
-                return response()->json(['message' => 'Email server error: Failed to send verification email. Registration cancelled.'], 500);
-            }
             throw $e;
         }
     }
