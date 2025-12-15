@@ -38,4 +38,4 @@ RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 RUN chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 
 # Start API: Run migrations first, then start server
-CMD sh -c "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=80"
+CMD php artisan serve --host=0.0.0.0 --port=80
