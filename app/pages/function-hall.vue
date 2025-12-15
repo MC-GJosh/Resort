@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import BookingConfirmationModal from '~/components/BookingConfirmationModal.vue';
-import PaymentMethod from '~/components/PaymentMethod.vue';
+import FunctionHallReservationModal from '~/components/FunctionHallReservationModal.vue';
 
 const api = useApi();
 const { isLoggedIn, openLoginModal } = useAuth();
@@ -9,45 +9,24 @@ const { isLoggedIn, openLoginModal } = useAuth();
 // --- Hall Data ---
 const halls = ref([]);
 const loading = ref(true);
-
-// --- Form State ---
-const bookingForm = ref({
-  fullName: '',
-  phoneNumber: '',
-  address: '',
-  email: '',
-  eventDate: '',
-  guestCount: 50,
-  selectedHall: null,
-  paymentMethod: 'GCash',
-  referenceNumber: '',
-  cateringPackage: '',
-  selectedMainDish: '',
-  selectedAppetizer: '',
-  selectedDrink: '',
-  availMiniBar: false,
-  notes: ''
-});
-
-// --- Menu Options ---
-const menuOptions = {
-  mainDishes: ['Fried Chicken', 'Pork BBQ Skewers', 'Beef Caldereta', 'Breaded Fish Fillet', 'Roast Beef'],
-  appetizers: ['Lumpiang Shanghai', 'Spaghetti Bolognese', 'Creamy Carbonara', 'Buttered Vegetables', 'Calamares'],
-  drinks: ['Iced Tea', 'Blue Lemonade', 'Soda / Soft Drinks', 'Fruit Juice']
-};
-
+const showReservationModal = ref(false);
 const showConfirmation = ref(false);
-const submitting = ref(false);
+const selectedHall = ref(null);
 
 // --- Fetch halls from API ---
 const fetchHalls = async () => {
   loading.value = true;
+  
+  // Add artificial delay for "loading" feel (2.5 seconds)
+  const delay = new Promise(resolve => setTimeout(resolve, 2500));
+  
   const { data } = await api.get('/function-halls');
+  
+  // Wait for delay
+  await delay;
+  
   if (data) {
     halls.value = data;
-    if (data.length > 0) {
-      bookingForm.value.selectedHall = data[0];
-    }
   }
   loading.value = false;
 };
@@ -58,70 +37,52 @@ onMounted(() => {
 
 // --- Hall Selection Logic ---
 const selectHall = (hall) => {
-  bookingForm.value.selectedHall = hall;
-  const formElement = document.getElementById('booking-section');
-  if (formElement) {
-    formElement.scrollIntoView({ behavior: 'smooth' });
-  }
-};
-
-const submitBooking = async () => {
   if (!isLoggedIn.value) { 
     openLoginModal(); 
     return; 
   }
-  
-  submitting.value = true;
+  selectedHall.value = hall;
+  showReservationModal.value = true;
+};
+
+const handleBookingSubmit = async (bookingData) => {
   
   const { data, error } = await api.post('/hall-bookings', {
-    function_hall_id: bookingForm.value.selectedHall.id,
-    full_name: bookingForm.value.fullName,
-    phone: bookingForm.value.phoneNumber,
-    email: bookingForm.value.email,
-    address: bookingForm.value.address,
-    event_date: bookingForm.value.eventDate,
-    guest_count: bookingForm.value.guestCount,
-    catering_package: bookingForm.value.cateringPackage,
-    main_dish: bookingForm.value.selectedMainDish,
-    appetizer: bookingForm.value.selectedAppetizer,
-    drink: bookingForm.value.selectedDrink,
-    avail_mini_bar: bookingForm.value.availMiniBar,
-    payment_method: bookingForm.value.paymentMethod,
-    reference_number: bookingForm.value.referenceNumber,
-    notes: bookingForm.value.notes
+    function_hall_id: bookingData.selectedHall.id,
+    full_name: bookingData.fullName,
+    phone: bookingData.phoneNumber,
+    email: bookingData.email,
+    address: bookingData.address,
+    event_date: bookingData.eventDate,
+    guest_count: bookingData.guestCount,
+    catering_package: bookingData.cateringPackage,
+    main_dish: bookingData.selectedMainDish,
+    appetizer: bookingData.selectedAppetizer,
+    drink: bookingData.selectedDrink,
+    avail_mini_bar: bookingData.availMiniBar,
+    payment_method: bookingData.paymentMethod,
+    reference_number: bookingData.referenceNumber,
+    notes: bookingData.notes
   });
-  
-  submitting.value = false;
   
   if (error) {
     alert(error.message || 'Booking failed');
   } else {
+    showReservationModal.value = false;
     showConfirmation.value = true;
-    // Reset form
-    bookingForm.value.fullName = '';
-    bookingForm.value.phoneNumber = '';
-    bookingForm.value.address = '';
-    bookingForm.value.email = '';
-    bookingForm.value.eventDate = '';
-    bookingForm.value.guestCount = 50;
-    bookingForm.value.cateringPackage = '';
-    bookingForm.value.selectedMainDish = '';
-    bookingForm.value.selectedAppetizer = '';
-    bookingForm.value.selectedDrink = '';
-    bookingForm.value.availMiniBar = false;
-    bookingForm.value.referenceNumber = '';
-    bookingForm.value.notes = '';
   }
-};
-
-const validatePhone = (event) => {
-  const input = event.target;
-  input.value = input.value.replace(/\D/g, '').slice(0, 11);
-  bookingForm.value.phoneNumber = input.value;
 };
 
 const formatPrice = (price) => {
   return '₱' + parseFloat(price).toLocaleString();
+};
+const getHallImage = (hall) => {
+  const name = hall.name.toLowerCase();
+  if (name.includes('grand')) {
+    return '/grandballroom.jpg';
+  } else {
+    return '/functionhall.jpg';
+  }
 };
 </script>
 
@@ -147,9 +108,11 @@ const formatPrice = (price) => {
             v-for="hall in halls" 
             :key="hall.id"
             class="hall-card" 
-            :class="{ active: bookingForm.selectedHall?.id === hall.id }"
           >
-            <div class="card-image" :class="hall.image_class">
+            <div 
+              class="card-image" 
+              :style="{ backgroundImage: `url(${getHallImage(hall)})` }"
+            >
               <span class="badge" :class="{ premium: hall.is_premium }">{{ hall.badge }}</span>
             </div>
             <div class="card-details">
@@ -162,151 +125,36 @@ const formatPrice = (price) => {
                 <li><strong>Price:</strong> {{ formatPrice(hall.price_per_4hrs) }} / 4 Hours</li>
               </ul>
               <button @click="selectHall(hall)" class="select-btn">
-                {{ bookingForm.selectedHall?.id === hall.id ? 'Selected' : `Book ${hall.name}` }}
+                Book {{ hall.name }}
               </button>
             </div>
           </div>
 
         </div>
       </section>
-
-      <!-- BOOKING FORM -->
-      <section id="booking-section" class="booking-wrapper">
-        <div class="form-container">
-          <div class="form-header">
-            <h2>Secure Your Date</h2>
-            <p>You are booking: 
-              <span class="highlight">
-                {{ bookingForm.selectedHall?.name || 'Select a hall' }}
-              </span>
-            </p>
-          </div>
-
-          <form @submit.prevent="submitBooking" class="actual-form">
-            <div class="form-group">
-              <label>Full Name of Booker</label>
-              <input type="text" v-model="bookingForm.fullName" placeholder="e.g. Juan Dela Cruz" required />
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label>Contact Number</label>
-                <input 
-                  type="tel" 
-                  v-model="bookingForm.phoneNumber" 
-                  placeholder="e.g. 09171234567" 
-                  maxlength="11"
-                  @input="validatePhone"
-                  required 
-                />
-              </div>
-              <div class="form-group">
-                <label>Email Address</label>
-                <input type="email" v-model="bookingForm.email" placeholder="e.g. juan@email.com" />
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label>Complete Address</label>
-              <input type="text" v-model="bookingForm.address" placeholder="House No., Street, City, Province" required />
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label>Event Date</label>
-                <input type="date" v-model="bookingForm.eventDate" :min="new Date().toISOString().split('T')[0]" required />
-              </div>
-              <div class="form-group">
-                <label>Expected Guests</label>
-                <input 
-                  type="number" 
-                  v-model="bookingForm.guestCount" 
-                  :min="bookingForm.selectedHall?.min_capacity || 30" 
-                  :max="bookingForm.selectedHall?.max_capacity || 400"
-                  required 
-                />
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label>Select Hall</label>
-              <select v-model="bookingForm.selectedHall">
-                <option v-for="hall in halls" :key="hall.id" :value="hall">
-                  {{ hall.name }} ({{ formatPrice(hall.price_per_4hrs) }})
-                </option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label>Catering Options</label>
-              <select v-model="bookingForm.cateringPackage">
-                <option value="" disabled>Select a package</option>
-                <option value="15-20pax">15-20 Pax Package</option>
-                <option value="20-25pax">20-25 Pax Package</option>
-                <option value="25-30pax">25-30 Pax Package</option>
-              </select>
-            </div>
-
-            <div v-if="bookingForm.cateringPackage" class="menu-selection">
-              <p><strong>Customize Your Menu:</strong></p>
-              
-              <div class="form-group">
-                <label>Choose Main Dish</label>
-                <select v-model="bookingForm.selectedMainDish">
-                  <option value="" disabled>Select Main Dish</option>
-                  <option v-for="dish in menuOptions.mainDishes" :key="dish" :value="dish">{{ dish }}</option>
-                </select>
-              </div>
-
-              <div class="form-group">
-                <label>Choose Appetizer / Pasta / Veg</label>
-                <select v-model="bookingForm.selectedAppetizer">
-                  <option value="" disabled>Select Appetizer</option>
-                  <option v-for="app in menuOptions.appetizers" :key="app" :value="app">{{ app }}</option>
-                </select>
-              </div>
-
-              <div class="form-group">
-                <label>Choose Drink</label>
-                <select v-model="bookingForm.selectedDrink">
-                  <option value="" disabled>Select Drink</option>
-                  <option v-for="drink in menuOptions.drinks" :key="drink" :value="drink">{{ drink }}</option>
-                </select>
-              </div>
-
-              <div class="form-group checkbox-group">
-                <input type="checkbox" id="miniBar" v-model="bookingForm.availMiniBar" />
-                <label for="miniBar">Avail Mini Bar (+ Extra Charge)</label>
-              </div>
-            </div>
-
-            <PaymentMethod 
-              v-model="bookingForm.paymentMethod" 
-              v-model:referenceNumber="bookingForm.referenceNumber" 
-            />
-
-            <button type="submit" class="submit-btn" :disabled="submitting">
-              {{ submitting ? 'Processing...' : 'Submit Booking Request' }}
-            </button>
-          </form>
-        </div>
-      </section>
     </template>
 
   </div>
+
+  <FunctionHallReservationModal 
+    :isVisible="showReservationModal"
+    :halls="halls"
+    :initialHall="selectedHall"
+    @close="showReservationModal = false"
+    @submit="handleBookingSubmit"
+  />
+
   <BookingConfirmationModal :isVisible="showConfirmation" @close="showConfirmation = false" />
 </template>
 
 <style scoped>
 /* GENERAL PAGE */
-.function-hall-page { font-family: 'Segoe UI', sans-serif; color: #333; background-color: #f4f4f4; }
+.function-hall-page { font-family: 'Segoe UI', sans-serif; color: #333; background-color: #f4f4f4; padding-bottom: 2rem; }
 
 /* HERO */
 .hall-hero { background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('/functionhall.jpg'); background-size: cover; background-position: center; height: 40vh; display: flex; align-items: center; justify-content: center; text-align: center; color: white; }
 .hero-content h1 { font-size: 2.5rem; margin-bottom: 0.5rem; letter-spacing: 2px; }
 .hero-content p { font-size: 1.1rem; }
-
-
 
 /* HALL CHOICES */
 .hall-choices { padding: 4rem 2rem; }
@@ -325,13 +173,7 @@ const formatPrice = (price) => {
   border: 1px solid rgba(255,255,255,0.6); 
   transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1); 
 }
-.hall-card.active { 
-  border-color: #D59F4A; 
-  transform: translateY(-8px); 
-  box-shadow: 
-    0 20px 40px rgba(213, 159, 74, 0.15),
-    0 8px 16px rgba(213, 159, 74, 0.1); 
-}
+
 .hall-card:hover { 
   transform: translateY(-8px); 
   box-shadow: 
@@ -375,93 +217,7 @@ const formatPrice = (price) => {
   border-bottom: 1px solid rgba(0,0,0,0.1);
 }
 
-/* BOOKING FORM */
-.booking-wrapper { background-color: white; padding: 4rem 2rem; border-top: 1px solid #eee; }
-.form-container { 
-  max-width: 800px; 
-  margin: 0 auto; 
-  background: #fdfdfd; 
-  padding: 3.5rem; 
-  border-radius: 20px; 
-  box-shadow: 
-    0 15px 40px rgba(0,0,0,0.06),
-    0 5px 15px rgba(0,0,0,0.04);
-  border: 1px solid rgba(255,255,255,0.8); 
-}
-.form-header { text-align: center; margin-bottom: 2rem; }
-.highlight { color: #D59F4A; font-weight: bold; }
-.actual-form { display: flex; flex-direction: column; gap: 1.5rem; }
-.form-row { display: flex; gap: 1.5rem; }
-.form-group { display: flex; flex-direction: column; gap: 0.5rem; flex: 1; }
-label { font-weight: 600; font-size: 0.9rem; color: #444; }
-input, select, textarea { 
-  padding: 0.9rem; 
-  border: 1px solid #ddd; 
-  border-radius: 8px; 
-  font-size: 1rem; 
-  background: #fff; 
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); 
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.03); 
-}
-input:focus, select:focus, textarea:focus { 
-  outline: none; 
-  border-color: #D59F4A; 
-  box-shadow: 
-    0 0 0 4px rgba(213, 159, 74, 0.15),
-    inset 0 1px 2px rgba(0,0,0,0.03); 
-  transform: translateY(-1px); 
-}
-.submit-btn { 
-  background-color: #D59F4A; 
-  color: white; 
-  font-weight: bold; 
-  padding: 1.3rem; 
-  border: none; 
-  border-radius: 10px; 
-  cursor: pointer; 
-  font-size: 1.1rem; 
-  margin-top: 1rem; 
-  transition: all 0.2s ease; 
-  box-shadow: 0 4px 10px rgba(213, 159, 74, 0.3); 
-  border-bottom: 3px solid rgba(0,0,0,0.15); 
-}
-.submit-btn:hover:not(:disabled) { 
-  background-color: #c7923e; 
-  transform: translateY(-2px); 
-  box-shadow: 0 8px 20px rgba(213, 159, 74, 0.4); 
-  border-bottom: 3px solid rgba(0,0,0,0.15); 
-}
-.submit-btn:active:not(:disabled) {
-  transform: translateY(1px);
-  box-shadow: 0 2px 5px rgba(213, 159, 74, 0.3);
-  border-bottom: 1px solid rgba(0,0,0,0.1);
-}
-.submit-btn:disabled { background-color: #ccc; cursor: not-allowed; border: none; }
-
-.menu-selection {
-  margin-top: 10px;
-  padding: 15px;
-  background-color: #fff3e0;
-  border: 1px solid #ffe0b2;
-  border-radius: 6px;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.checkbox-group {
-  flex-direction: row;
-  align-items: center;
-  gap: 0.5rem;
-}
-.checkbox-group input {
-  width: auto;
-}
-
-/* RESPONSIVE */
 @media (max-width: 768px) {
   .hero-content h1 { font-size: 2rem; }
-  .form-row { flex-direction: column; gap: 1.5rem; }
-  .form-container { padding: 1.5rem; }
 }
 </style>

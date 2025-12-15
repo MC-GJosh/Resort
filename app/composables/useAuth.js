@@ -101,7 +101,7 @@ export const useAuth = () => {
 
         user.value = data.user
         isLoggedIn.value = true
-        showLoginModal.value = false
+
 
         return true
     }

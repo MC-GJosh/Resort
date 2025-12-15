@@ -76,10 +76,18 @@ export const useApi = () => {
         return request(endpoint, { ...options, method: 'DELETE' })
     }
 
+    /**
+     * PATCH request
+     */
+    const patch = (endpoint, body, options = {}) => {
+        return request(endpoint, { ...options, method: 'PATCH', body })
+    }
+
     return {
         get,
         post,
         put,
+        patch,
         del,
         getToken
     }

@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 
 const { 
   showLoginModal, 
@@ -18,6 +18,7 @@ const {
 // Login form
 const loginEmail = ref('');
 const loginPassword = ref('');
+const showLoginSuccess = ref(false);
 
 // Register form
 const registerName = ref('');
@@ -29,9 +30,16 @@ const registerPasswordConfirm = ref('');
 const handleLogin = async () => {
   const success = await login(loginEmail.value, loginPassword.value);
   if (success) {
+    showLoginSuccess.value = true;
     // Clear form
     loginEmail.value = '';
     loginPassword.value = '';
+    
+    // Auto close after 1.5s
+    setTimeout(() => {
+      showLoginSuccess.value = false;
+      closeLoginModal();
+    }, 1500);
   }
 };
 
@@ -58,12 +66,23 @@ const validatePhone = (event) => {
   input.value = input.value.replace(/\D/g, '').slice(0, 11);
   registerPhone.value = input.value;
 };
+
+// Handle Escape Key
+const handleKeydown = (e) => {
+  if (e.key === 'Escape') {
+    if (showLoginModal.value) closeLoginModal();
+    if (showRegisterModal.value) closeRegisterModal();
+  }
+};
+
+onMounted(() => window.addEventListener('keydown', handleKeydown));
+onUnmounted(() => window.removeEventListener('keydown', handleKeydown));
 </script>
 
 <template>
   <!-- LOGIN MODAL -->
   <Transition name="fade">
-    <div v-if="showLoginModal" class="auth-overlay" @click.self="closeLoginModal">
+    <div v-if="showLoginModal" class="auth-overlay">
       <div class="auth-box">
         <button class="close-btn" @click="closeLoginModal">&times;</button>
         
@@ -81,7 +100,15 @@ const validatePhone = (event) => {
           {{ authSuccessMessage }}
         </div>
 
-        <form @submit.prevent="handleLogin">
+        <div v-if="showLoginSuccess" class="success-view">
+          <div class="spinner-container">
+            <div class="spinner-check"></div>
+          </div>
+          <h3>Login Successful!</h3>
+          <p>Redirecting you now...</p>
+        </div>
+
+        <form v-else @submit.prevent="handleLogin">
           <div class="input-group">
             <input 
               type="email" 
@@ -102,7 +129,8 @@ const validatePhone = (event) => {
           </div>
 
         <button type="submit" class="auth-submit-btn" :disabled="authLoading">
-            {{ authLoading ? 'Logging in...' : 'Log In' }}
+            <span v-if="authLoading" class="btn-spinner"></span>
+            <span v-else>Log In</span>
           </button>
         </form>
 
@@ -115,7 +143,7 @@ const validatePhone = (event) => {
 
   <!-- REGISTER MODAL -->
   <Transition name="fade">
-    <div v-if="showRegisterModal" class="auth-overlay" @click.self="closeRegisterModal">
+    <div v-if="showRegisterModal" class="auth-overlay">
       <div class="auth-box">
         <button class="close-btn" @click="closeRegisterModal">&times;</button>
         
@@ -187,7 +215,8 @@ const validatePhone = (event) => {
           </div>
 
           <button type="submit" class="auth-submit-btn" :disabled="authLoading">
-            {{ authLoading ? 'Creating Account...' : 'Sign Up' }}
+            <span v-if="authLoading" class="btn-spinner"></span>
+            <span v-else>Sign Up</span>
           </button>
         </form>
 
@@ -253,7 +282,19 @@ const validatePhone = (event) => {
   cursor: pointer; margin-top: 1rem; transition: background 0.3s;
 }
 .auth-submit-btn:hover:not(:disabled) { background-color: #D59F4A; }
-.auth-submit-btn:disabled { background-color: #ccc; cursor: not-allowed; }
+.auth-submit-btn:disabled { background-color: #ccc; cursor: not-allowed; display: flex; justify-content: center; align-items: center; }
+
+.btn-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid white;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
 
 .divider {
   display: flex; align-items: center; margin: 1.5rem 0; color: #888; font-size: 0.8rem;
@@ -288,4 +329,22 @@ const validatePhone = (event) => {
   font-size: 3rem;
   margin-bottom: 1rem;
 }
+
+.spinner-container { margin-bottom: 1.5rem; display: flex; justify-content: center; }
+
+.spinner-check {
+  width: 60px; height: 60px;
+  border: 5px solid #D59F4A; border-radius: 50%; position: relative;
+}
+
+.spinner-check::after {
+  content: ''; position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%) rotate(45deg);
+  width: 15px; height: 25px;
+  border-bottom: 4px solid #D59F4A; border-right: 4px solid #D59F4A;
+}
+
+.success-view h3 { color: #2c3e50; margin-bottom: 0.5rem; font-size: 1.5rem; }
+.success-view p { color: #666; margin-bottom: 0; }
 </style>

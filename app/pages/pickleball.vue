@@ -20,6 +20,9 @@ const formatPrice = (price) => {
 const fetchData = async () => {
   loading.value = true;
   
+  // Add artificial delay for "loading" feel (2.5 seconds)
+  const delay = new Promise(resolve => setTimeout(resolve, 2500));
+  
   // Fetch courts from Laravel API
   const { data: courtsData } = await api.get('/courts');
   if (courtsData) {
@@ -31,6 +34,9 @@ const fetchData = async () => {
   if (bookingsData) {
     bookings.value = bookingsData;
   }
+  
+  // Wait for delay
+  await delay;
   
   loading.value = false;
 };
@@ -263,6 +269,6 @@ const handleBookingSubmit = async (bookingData) => {
 
 @media (max-width: 768px) {
   .courts-grid { grid-template-columns: 1fr; }
-  .pickleball-page { padding-top: 100px; }
+  /* padding-top removed to let hero image sit behind header */
 }
 </style>

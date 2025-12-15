@@ -1,5 +1,6 @@
 <script setup>
-defineProps({
+import { onMounted, onUnmounted } from 'vue';
+const props = defineProps({
   isVisible: {
     type: Boolean,
     required: true
@@ -14,15 +15,24 @@ defineProps({
   }
 });
 
+
+
 const emit = defineEmits(['close']);
 
 const close = () => {
   emit('close');
 };
+
+const handleKeydown = (e) => {
+  if (e.key === 'Escape' && props.isVisible) close();
+};
+
+onMounted(() => window.addEventListener('keydown', handleKeydown));
+onUnmounted(() => window.removeEventListener('keydown', handleKeydown));
 </script>
 
 <template>
-  <div v-if="isVisible" class="modal-overlay" @click.self="close">
+  <div v-if="isVisible" class="modal-overlay">
     <div class="modal-content">
       <div class="spinner-container">
         <div class="spinner-check"></div>

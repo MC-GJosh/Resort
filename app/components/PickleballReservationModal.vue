@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import PaymentMethod from './PaymentMethod.vue';
 
 const props = defineProps({
@@ -93,10 +93,17 @@ const closeModal = () => {
 const submitBooking = () => {
   emit('submit', booking.value);
 };
+
+const handleKeydown = (e) => {
+  if (e.key === 'Escape' && props.isVisible) closeModal();
+};
+
+onMounted(() => window.addEventListener('keydown', handleKeydown));
+onUnmounted(() => window.removeEventListener('keydown', handleKeydown));
 </script>
 
 <template>
-  <div v-if="isVisible" class="modal-overlay" @click.self="closeModal">
+  <div v-if="isVisible" class="modal-overlay">
     <div class="modal-content">
       <button class="close-btn" @click="closeModal">&times;</button>
       <h2>Reserve Court</h2>

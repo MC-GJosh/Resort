@@ -100,7 +100,9 @@ const formatPrice = (price) => '₱' + parseFloat(price || 0).toLocaleString();
       <button @click="clearFilters" class="clear-btn">Clear</button>
     </div>
 
-    <div v-if="loading" class="loading">Loading bookings...</div>
+    <div v-if="loading" class="loading-container">
+      <LoadingSpinner />
+    </div>
 
     <div v-else class="table-wrapper">
       <div class="table-header"><span>Total: {{ pagination.total }} bookings</span></div>
@@ -156,7 +158,11 @@ const formatPrice = (price) => '₱' + parseFloat(price || 0).toLocaleString();
 .filters-bar select, .filters-bar input { padding: 0.6rem 1rem; border: 1px solid #ddd; border-radius: 6px; font-size: 0.95rem; background: white; }
 .filter-btn { background: #1d3557; color: white; border: none; padding: 0.6rem 1.5rem; border-radius: 6px; cursor: pointer; }
 .clear-btn { background: #f0f0f0; color: #333; border: none; padding: 0.6rem 1.5rem; border-radius: 6px; cursor: pointer; }
-.loading { text-align: center; padding: 3rem; color: #666; }
+.loading-container { 
+  display: flex; 
+  justify-content: center; 
+  padding: 4rem; 
+}
 .table-wrapper { background: white; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow: hidden; }
 .table-header { padding: 1rem 1.5rem; background: #f8f9fa; border-bottom: 1px solid #eee; color: #666; font-size: 0.9rem; }
 table { width: 100%; border-collapse: collapse; }

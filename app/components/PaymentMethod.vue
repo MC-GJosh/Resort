@@ -9,6 +9,10 @@ const props = defineProps({
   referenceNumber: {
     type: String,
     default: ''
+  },
+  allowPayOnSite: {
+    type: Boolean,
+    default: true
   }
 });
 
@@ -33,7 +37,7 @@ watch(refNum, (val) => {
       <select v-model="selectedMethod">
         <option value="GCash">GCash</option>
         <option value="Bank Transfer">Bank Transfer</option>
-        <option value="Pay on Site">Pay on Site</option>
+        <option v-if="allowPayOnSite" value="Pay on Site">Pay on Site</option>
       </select>
     </div>
 

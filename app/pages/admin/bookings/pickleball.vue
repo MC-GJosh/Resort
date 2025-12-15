@@ -52,17 +52,27 @@ onMounted(() => {
   fetchBookings();
 });
 
+const loadingId = ref(null);
+
 const updateStatus = async (booking, newStatus) => {
+  loadingId.value = booking.id;
   const { error } = await api.patch(`/admin/pickleball-bookings/${booking.id}/status`, {
     status: newStatus
   });
+  
+  // Simulate network delay for UX if too fast, but keep it snappy (1s)
+  await new Promise(resolve => setTimeout(resolve, 1000));
   
   if (error) {
     alert(error.message || 'Failed to update status');
   } else {
     booking.status = newStatus;
   }
+  loadingId.value = null;
 };
+
+// ... existing code ...
+
 
 const applyFilters = () => {
   fetchBookings();
@@ -108,7 +118,9 @@ const formatPrice = (price) => '₱' + parseFloat(price || 0).toLocaleString();
       <button @click="clearFilters" class="clear-btn">Clear</button>
     </div>
 
-    <div v-if="loading" class="loading">Loading bookings...</div>
+    <div v-if="loading" class="loading-container">
+      <LoadingSpinner />
+    </div>
 
     <div v-else class="table-wrapper">
       <div class="table-header">
@@ -142,10 +154,15 @@ const formatPrice = (price) => '₱' + parseFloat(price || 0).toLocaleString();
             <td>{{ b.payment_method }}<br><small>{{ b.reference_number || '-' }}</small></td>
             <td><span :class="['badge', b.status]">{{ b.status }}</span></td>
             <td class="actions">
+              <div v-if="loadingId === b.id" class="updating-status">
+                <span class="spinner"></span> Updating...
+              </div>
               <select 
+                v-else
                 :value="b.status" 
                 @change="updateStatus(b, $event.target.value)"
                 class="status-select"
+                :disabled="loadingId === b.id"
               >
                 <option value="pending">Pending</option>
                 <option value="confirmed">Confirmed</option>
@@ -199,7 +216,11 @@ const formatPrice = (price) => '₱' + parseFloat(price || 0).toLocaleString();
   cursor: pointer;
 }
 
-.loading { text-align: center; padding: 3rem; color: #666; }
+.loading-container { 
+  display: flex; 
+  justify-content: center; 
+  padding: 4rem; 
+}
 
 .table-wrapper { 
   background: white; 
@@ -242,5 +263,27 @@ td small { color: #888; font-size: 0.8rem; }
   border-radius: 4px;
   font-size: 0.85rem;
   width: 100%;
+}
+
+.updating-status {
+  font-size: 0.85rem;
+  color: #666;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.spinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid #ddd;
+  border-top-color: #1d3557;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 </style>

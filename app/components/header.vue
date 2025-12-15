@@ -20,19 +20,40 @@ const closeMobileMenu = () => {
   mobileMenuOpen.value = false;
 };
 
+const showLogoutModal = ref(false);
+
 const handleLogout = async () => {
   await logout();
+  showLogoutModal.value = true;
+  await new Promise(resolve => setTimeout(resolve, 1500));
+  showLogoutModal.value = false;
   closeMobileMenu();
+  window.location.href = '/';
 };
 
-// Set up the scroll listener
+const dropdownOpen = ref(false);
+
+const toggleDropdown = () => {
+  dropdownOpen.value = !dropdownOpen.value;
+};
+
+// Close dropdown when clicking outside
+const closeDropdown = (e) => {
+  if (!e.target.closest('.user-menu')) {
+    dropdownOpen.value = false;
+  }
+};
+
+// Set up listeners
 onMounted(() => {
   window.addEventListener('scroll', handleScroll);
+  window.addEventListener('click', closeDropdown);
 });
 
-// Clean up the listener
+// Clean up listeners
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll);
+  window.removeEventListener('click', closeDropdown);
 });
 </script>
 
@@ -62,13 +83,22 @@ onUnmounted(() => {
                     <li><NuxtLink to="/hotel-room">Room</NuxtLink></li>
                     <li><NuxtLink to="/aboutus">About Us</NuxtLink></li>
                     
-                    <!-- Admin Link -->
-                    <li v-if="user?.role === 'admin'"><NuxtLink to="/admin" class="admin-link">Dashboard</NuxtLink></li>
-
-                    <!-- Show user info when logged in -->
-                    <li v-if="isLoggedIn" class="user-menu">
-                      <span class="user-name">{{ user?.name }}</span>
-                      <a href="#" @click.prevent="handleLogout" class="logout-link">Log Out</a>
+                    <!-- User Dropdown (Replaces old user info) -->
+                    <li v-if="isLoggedIn" class="user-menu" @click.stop="toggleDropdown">
+                      <div class="user-name-btn">
+                        <span>{{ user?.name }}</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                          <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+                        </svg>
+                      </div>
+                      
+                      <div class="dropdown-menu" :class="{ 'show': dropdownOpen }">
+                        <NuxtLink v-if="user?.role === 'admin'" to="/admin" class="dropdown-item admin" @click="dropdownOpen = false">
+                          Admin Dashboard
+                        </NuxtLink>
+                        <!-- <a href="#" class="dropdown-item">My Bookings</a> -->
+                        <a href="#" @click.prevent="handleLogout" class="dropdown-item logout">Log Out</a>
+                      </div>
                     </li>
                     <li v-else><a href="#" @click.prevent="openLoginModal">Log In</a></li>
                 </ul>
@@ -106,6 +136,17 @@ onUnmounted(() => {
             </ul>
         </div>
     </header>
+
+    <!-- Logout Success Modal -->
+    <div v-if="showLogoutModal" class="modal-overlay">
+      <div class="modal-content">
+        <div class="spinner-container">
+          <div class="spinner-check"></div>
+        </div>
+        <h3>Log Out Complete</h3>
+        <p>You have been successfully logged out.</p>
+      </div>
+    </div>
 </template>
 
 <style scoped>
@@ -137,22 +178,77 @@ onUnmounted(() => {
 .desktop-nav a { color: white; text-decoration: none; font-weight: bold; font-size: 1.05rem; transition: all 0.3s ease; position: relative; }
 .desktop-nav a:hover { color: #D59F4A; transform: translateY(-1px); }
 
-/* User menu */
+/* User Dropdown */
 .user-menu {
+  position: relative;
+  cursor: pointer;
+}
+
+.user-name-btn {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.5rem;
+  color: white;
+  font-weight: 600;
+  transition: color 0.3s;
 }
-.user-name {
+
+.user-name-btn:hover {
   color: #D59F4A;
-  font-weight: bold;
-  font-size: 1rem;
 }
-.logout-link {
-  color: #ff6b6b !important;
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border-radius: 8px;
+  min-width: 200px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  padding: 0.5rem 0;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dropdown-menu.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0.8rem 1.2rem;
+  color: #333 !important;
   font-size: 0.95rem !important;
+  font-weight: 500 !important;
+  transition: background 0.2s;
 }
-.logout-link:hover {
+
+.dropdown-item:hover {
+  background: #f8f9fa;
+  color: #D59F4A !important;
+  transform: translateX(5px);
+}
+
+.dropdown-item.admin {
+  color: #D59F4A !important;
+  font-weight: bold !important;
+  border-bottom: 1px solid #f1f1f1;
+}
+
+.dropdown-item.logout {
+  color: #ff6b6b !important;
+  border-top: 1px solid #f1f1f1;
+  margin-top: 0.5rem;
+}
+
+.dropdown-item.logout:hover {
+  background: #fff5f5;
   color: #ff4757 !important;
 }
 
@@ -333,4 +429,42 @@ onUnmounted(() => {
 .mobile-admin-link {
   color: #D59F4A !important;
 }
+
+/* Logout Modal Styles */
+.modal-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 2000; backdrop-filter: blur(5px);
+}
+
+.modal-content {
+  background: white; padding: 2.5rem; border-radius: 15px; text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  width: 90%; max-width: 400px;
+  animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popIn {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.spinner-container { margin-bottom: 1.5rem; display: flex; justify-content: center; }
+
+.spinner-check {
+  width: 60px; height: 60px;
+  border: 5px solid #D59F4A; border-radius: 50%; position: relative;
+}
+
+.spinner-check::after {
+  content: ''; position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%) rotate(45deg);
+  width: 15px; height: 25px;
+  border-bottom: 4px solid #D59F4A; border-right: 4px solid #D59F4A;
+}
+
+.modal-content h3 { color: #2c3e50; margin-bottom: 0.5rem; font-size: 1.5rem; }
+.modal-content p { color: #666; margin-bottom: 0; }
 </style>
