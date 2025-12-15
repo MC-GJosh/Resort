@@ -1,5 +1,5 @@
 # Dockerfile
-FROM node:18-alpine
+FROM node:22-alpine
 
 # update and install dependencies
 RUN apk update && apk upgrade && apk add git
