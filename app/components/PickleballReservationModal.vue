@@ -51,20 +51,29 @@ const timeSlots = [
 
 const isSlotBooked = (slot) => {
   if (!booking.value.date || !booking.value.selectedCourtId) return false;
-  return props.bookings.some(b => 
-    b.courtId === booking.value.selectedCourtId && 
-    b.date === booking.value.date && 
-    b.time === slot
-  );
+  const courtId = parseInt(booking.value.selectedCourtId);
+  const selectedDate = booking.value.date;
+  
+  return props.bookings.some(b => {
+    // Handle Laravel API format (court_id, time_slot, date as ISO string)
+    const bCourtId = b.court_id || b.courtId;
+    const bTimeSlot = b.time_slot || b.time;
+    const bDate = b.date ? b.date.split('T')[0] : ''; // Handle ISO date format
+    
+    return bCourtId === courtId && 
+           bDate === selectedDate && 
+           bTimeSlot === slot;
+  });
 };
 
 const selectedCourt = computed(() => {
-  return props.courts.find(c => c.id === booking.value.selectedCourtId) || props.courts[0];
+  const courtId = parseInt(booking.value.selectedCourtId);
+  return props.courts.find(c => c.id === courtId) || props.courts[0];
 });
 
 const totalCost = computed(() => {
   if (!selectedCourt.value) return 0;
-  return selectedCourt.value.rate * booking.value.selectedTimeSlots.length;
+  return parseFloat(selectedCourt.value.rate) * booking.value.selectedTimeSlots.length;
 });
 
 const formatPrice = (price) => {

@@ -12,25 +12,25 @@ const facilities = [
     title: 'Functional Hall',
     description: 'Experience the perfect venue for your special occasions. Our Functional Hall is designed to host weddings, corporate events, and grand parties with elegance and style. Equipped with modern amenities and customizable layouts, we ensure your event is memorable.',
     image: '/functionhall.jpg',
-    link: '/fh',
-    buttonText: 'Available Soon!',
-    disabled: true
+    link: '/function-hall',
+    buttonText: 'View Halls',
+    disabled: false
   },
   {
     id: 'hr',
     title: 'Hotel Room',
     description: 'Relax and recharge in our luxurious hotel rooms. Designed for comfort and tranquility, each room features premium bedding, modern en-suite bathrooms, and stunning views. Whether you are here for a weekend getaway or a long vacation, our rooms provide the perfect sanctuary.',
     image: '/room.jpg',
-    link: '/hr',
-    buttonText: 'Available Soon!',
-    disabled: true
+    link: '/hotel-room',
+    buttonText: 'View Rooms',
+    disabled: false
   },
   {
     id: 'pb',
     title: 'Pickleball Court',
     description: 'Get active and enjoy a game on our professional-grade Pickleball courts. Perfect for both beginners and seasoned players, our courts offer a high-quality surface and excellent lighting for day or night play. Join the fun and stay fit at Waterland Resort.',
     image: '/pickballcourt.jpg',
-    link: '/pb',
+    link: '/pickleball',
     buttonText: 'Book a Court',
     disabled: false
   }

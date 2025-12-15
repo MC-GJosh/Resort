@@ -3,26 +3,36 @@ import { ref, onMounted } from 'vue';
 import BookingConfirmationModal from '~/components/BookingConfirmationModal.vue';
 import PickleballReservationModal from '~/components/PickleballReservationModal.vue';
 
+const api = useApi();
+const { isLoggedIn, openLoginModal } = useAuth();
+
 const courts = ref([]);
 const bookings = ref([]);
 const showReservationModal = ref(false);
 const showConfirmation = ref(false);
 const initialCourtId = ref('');
+const loading = ref(true);
 
 const formatPrice = (price) => {
-  return '₱' + price.toLocaleString();
+  return '₱' + parseFloat(price).toLocaleString();
 };
 
 const fetchData = async () => {
-  const { data: courtsData } = await useFetch('/api/courts');
-  if (courtsData.value) {
-    courts.value = courtsData.value;
+  loading.value = true;
+  
+  // Fetch courts from Laravel API
+  const { data: courtsData } = await api.get('/courts');
+  if (courtsData) {
+    courts.value = courtsData;
   }
 
-  const { data: bookingsData } = await useFetch('/api/bookings');
-  if (bookingsData.value) {
-    bookings.value = bookingsData.value;
+  // Fetch all bookings for availability display
+  const { data: bookingsData } = await api.get('/pickleball-bookings/all');
+  if (bookingsData) {
+    bookings.value = bookingsData;
   }
+  
+  loading.value = false;
 };
 
 onMounted(() => {
@@ -30,28 +40,33 @@ onMounted(() => {
 });
 
 const selectCourt = (court) => {
-  initialCourtId.value = court.id;
+  if (!isLoggedIn.value) {
+    openLoginModal();
+    return;
+  }
+  initialCourtId.value = court.id.toString();
   showReservationModal.value = true;
 };
 
 const handleBookingSubmit = async (bookingData) => {
-  try {
-    const { data, error } = await useFetch('/api/bookings', {
-      method: 'POST',
-      body: bookingData
-    });
+  const { data, error } = await api.post('/pickleball-bookings', {
+    court_id: parseInt(bookingData.selectedCourtId),
+    date: bookingData.date,
+    time_slots: bookingData.selectedTimeSlots,
+    customer_name: bookingData.playerName,
+    phone: bookingData.phone,
+    payment_method: bookingData.paymentMethod,
+    reference_number: bookingData.referenceNumber
+  });
 
-    if (error.value) {
-      alert(error.value.statusMessage || 'Booking failed');
-    } else {
-      console.log('Booking Submitted:', data.value);
-      showReservationModal.value = false;
-      showConfirmation.value = true;
-      // Refresh bookings to show the new one as taken
-      fetchData();
-    }
-  } catch (e) {
-    alert('An unexpected error occurred');
+  if (error) {
+    alert(error.message || 'Booking failed');
+  } else {
+    console.log('Booking Submitted:', data);
+    showReservationModal.value = false;
+    showConfirmation.value = true;
+    // Refresh bookings to show the new one as taken
+    fetchData();
   }
 };
 </script>
@@ -74,7 +89,11 @@ const handleBookingSubmit = async (bookingData) => {
           <p>Choose your preferred court for an amazing game.</p>
         </div>
 
-        <div class="courts-grid">
+        <div v-if="loading" class="loading-state">
+          <p>Loading courts...</p>
+        </div>
+
+        <div v-else class="courts-grid">
           <div 
             v-for="court in courts" 
             :key="court.id" 
@@ -143,16 +162,22 @@ const handleBookingSubmit = async (bookingData) => {
 
 /* --- Court List --- */
 .container {
-  max-width: 1400px; /* Increased max-width to fit 4 cards better */
+  max-width: 1400px;
   margin: 0 auto;
   padding: 0 2rem;
 }
 
 .section-title { text-align: center; margin-bottom: 3rem; }
 
+.loading-state {
+  text-align: center;
+  padding: 3rem;
+  color: #666;
+}
+
 .courts-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr); /* Force 4 columns */
+  grid-template-columns: repeat(4, 1fr);
   gap: 1.5rem;
   margin-bottom: 4rem;
 }
@@ -175,16 +200,12 @@ const handleBookingSubmit = async (bookingData) => {
 
 /* Image Placeholders */
 .court-img {
-  height: 200px; /* Slightly reduced height */
+  height: 200px;
   background-color: #ddd;
   position: relative;
   background-size: cover;
   background-position: center;
 }
-.img-court1 { background-color: #a8dadc; }
-.img-court2 { background-color: #457b9d; }
-.img-court3 { background-color: #1d3557; }
-.img-court4 { background-color: #e63946; }
 
 .price-tag {
   position: absolute;
