@@ -1,42 +1,11 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-// import { useAuth } from '~/composables/useAuth.js';
 
-const useLocalAuth = () => {
-    const isLoggedIn = useState('isLoggedIn', () => false)
-    const showLoginModal = useState('showLoginModal', () => false)
-
-    const login = () => {
-        isLoggedIn.value = true
-        closeLoginModal()
-    }
-
-    const logout = () => {
-        isLoggedIn.value = false
-    }
-
-    const openLoginModal = () => {
-        showLoginModal.value = true
-    }
-
-    const closeLoginModal = () => {
-        showLoginModal.value = false
-    }
-
-    return {
-        isLoggedIn,
-        showLoginModal,
-        login,
-        logout,
-        openLoginModal,
-        closeLoginModal
-    }
-}
+const { user, isLoggedIn, openLoginModal, logout } = useAuth();
 
 // Reactive state to track scroll position
 const isScrolled = ref(false);
 const mobileMenuOpen = ref(false);
-const { openLoginModal } = useLocalAuth();
 
 // Function to check scroll position
 const handleScroll = () => {
@@ -49,6 +18,11 @@ const toggleMobileMenu = () => {
 
 const closeMobileMenu = () => {
   mobileMenuOpen.value = false;
+};
+
+const handleLogout = async () => {
+  await logout();
+  closeMobileMenu();
 };
 
 // Set up the scroll listener
@@ -82,11 +56,20 @@ onUnmounted(() => {
             <nav class="desktop-nav">
                 <ul>
                     <li><NuxtLink to="/">Home</NuxtLink></li>
-                    <li><NuxtLink to="/pb">Pickleball</NuxtLink></li>
+                    <li><NuxtLink to="/pickleball">Pickleball</NuxtLink></li>
                     <li><NuxtLink to="/function-hall">Function Hall</NuxtLink></li>
                     <li><NuxtLink to="/hotel-room">Room</NuxtLink></li>
                     <li><NuxtLink to="/aboutus">About Us</NuxtLink></li>
-                    <li><a href="#" @click.prevent="openLoginModal">Log In</a></li>
+                    
+                    <!-- Admin Link -->
+                    <li v-if="user?.role === 'admin'"><NuxtLink to="/admin" class="admin-link">Dashboard</NuxtLink></li>
+
+                    <!-- Show user info when logged in -->
+                    <li v-if="isLoggedIn" class="user-menu">
+                      <span class="user-name">{{ user?.name }}</span>
+                      <a href="#" @click.prevent="handleLogout" class="logout-link">Log Out</a>
+                    </li>
+                    <li v-else><a href="#" @click.prevent="openLoginModal">Log In</a></li>
                 </ul>
             </nav>
         </div>
@@ -98,11 +81,26 @@ onUnmounted(() => {
         <div class="mobile-nav" :class="{ 'open': mobileMenuOpen }">
             <ul>
                 <li><NuxtLink to="/" @click="closeMobileMenu">Home</NuxtLink></li>
-                <li><NuxtLink to="/pb" @click="closeMobileMenu">Pickleball</NuxtLink></li>
+                <li><NuxtLink to="/pickleball" @click="closeMobileMenu">Pickleball</NuxtLink></li>
                 <li><NuxtLink to="/function-hall" @click="closeMobileMenu">Function Hall</NuxtLink></li>
                 <li><NuxtLink to="/hotel-room" @click="closeMobileMenu">Room</NuxtLink></li>
                 <li><NuxtLink to="/aboutus" @click="closeMobileMenu">About Us</NuxtLink></li>
-                <li class="login-item"><a href="#" @click.prevent="openLoginModal(); closeMobileMenu()">Log In</a></li>
+                
+                <!-- Admin Link -->
+                <li v-if="user?.role === 'admin'"><NuxtLink to="/admin" @click="closeMobileMenu" class="mobile-admin-link">Dashboard</NuxtLink></li>
+
+                <!-- Show user info when logged in -->
+                <template v-if="isLoggedIn">
+                  <li class="user-info-mobile">
+                    <span>Welcome, {{ user?.name }}</span>
+                  </li>
+                  <li class="logout-item">
+                    <a href="#" @click.prevent="handleLogout">Log Out</a>
+                  </li>
+                </template>
+                <li v-else class="login-item">
+                  <a href="#" @click.prevent="openLoginModal(); closeMobileMenu()">Log In</a>
+                </li>
             </ul>
         </div>
     </header>
@@ -128,9 +126,28 @@ onUnmounted(() => {
 .header-logo { height: 100%; width: auto; }
 
 /* Desktop Navigation */
-.desktop-nav ul { list-style: none; display: flex; gap: 2rem; margin: 0; padding: 0; }
+.desktop-nav ul { list-style: none; display: flex; gap: 2rem; margin: 0; padding: 0; align-items: center; }
 .desktop-nav a { color: white; text-decoration: none; font-weight: bold; font-size: 1.1rem; transition: color 0.3s; }
 .desktop-nav a:hover { color: #D59F4A; }
+
+/* User menu */
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.user-name {
+  color: #D59F4A;
+  font-weight: bold;
+  font-size: 1rem;
+}
+.logout-link {
+  color: #ff6b6b !important;
+  font-size: 0.95rem !important;
+}
+.logout-link:hover {
+  color: #ff4757 !important;
+}
 
 /* Mobile Menu Button - Clean & Simple */
 .mobile-menu-btn {
@@ -232,6 +249,26 @@ onUnmounted(() => {
   padding-left: 1.5rem;
 }
 
+/* Mobile user info */
+.user-info-mobile {
+  padding: 1rem 1.25rem;
+}
+.user-info-mobile span {
+  color: #D59F4A;
+  font-weight: 600;
+}
+.logout-item a {
+  background-color: #ff6b6b !important;
+  margin: 1rem;
+  border-radius: 8px;
+  text-align: center;
+  color: white !important;
+  font-weight: bold;
+}
+.logout-item a:hover {
+  background-color: #ff4757 !important;
+}
+
 /* Mobile Overlay */
 .mobile-overlay {
   display: none;
@@ -273,6 +310,20 @@ onUnmounted(() => {
     background-color: rgba(29, 53, 87, 0.95);
   }
 }
+
+.admin-link {
+  color: #D59F4A !important;
+  border: 1px solid #D59F4A;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+}
+
+.admin-link:hover {
+  background: #D59F4A;
+  color: white !important;
+}
+
+.mobile-admin-link {
+  color: #D59F4A !important;
+}
 </style>
-
-

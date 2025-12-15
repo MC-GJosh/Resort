@@ -1,14 +1,11 @@
 <template>
-  <div>
-    <AuthModal />
-    <Header />
-    <NuxtPage />    <!-- This renders your page content -->
-    <Footer></Footer>  <!-- Your basic footer component -->
-  </div>
+  <NuxtLayout>
+    <NuxtPage />
+  </NuxtLayout>
 </template>
 
 <script setup>
-
+// Layouts handle the structure (Header/Footer for public, Sidebar for admin)
 </script>
 
 <style>
