@@ -126,9 +126,7 @@ const submitBooking = async () => {
       </div>
     </section>
 
-    <div v-if="loading" class="loading-state">
-      <p>Loading rooms...</p>
-    </div>
+    <LoadingSpinner v-if="loading" text="Loading rooms..." />
 
     <template v-else>
       <section class="room-list">
@@ -282,7 +280,7 @@ const submitBooking = async () => {
 /* --- Hero --- */
 .hotel-hero {
   background-color: #2c3e50;
-  background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('/landingpage.jpg'); 
+  background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('/room.jpg'); 
   background-size: cover;
   background-position: center;
   height: 40vh;
@@ -296,11 +294,7 @@ const submitBooking = async () => {
 
 .hero-content h1 { font-size: 3.5rem; margin-bottom: 0.5rem; }
 
-.loading-state {
-  text-align: center;
-  padding: 5rem;
-  color: #666;
-}
+
 
 /* --- Room List --- */
 .container {
@@ -314,25 +308,29 @@ const submitBooking = async () => {
 .rooms-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-  gap: 2rem;
-  margin-bottom: 4rem;
+  gap: 2.5rem;
+  margin-bottom: 5rem;
 }
 
 .room-card {
   background: white;
-  border-radius: 12px;
+  border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-  transition: transform 0.3s;
-  border: 2px solid transparent;
+  box-shadow: 
+    0 10px 25px rgba(0,0,0,0.08),
+    0 4px 10px rgba(0,0,0,0.04);
+  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+  border: 1px solid rgba(255,255,255,0.6);
   display: flex;
   flex-direction: column;
 }
 
 .room-card.active {
   border-color: #D59F4A;
-  transform: scale(1.02);
-  box-shadow: 0 10px 25px rgba(213, 159, 74, 0.2);
+  transform: translateY(-8px);
+  box-shadow: 
+    0 20px 40px rgba(213, 159, 74, 0.2),
+    0 8px 16px rgba(213, 159, 74, 0.1);
 }
 
 /* Image Placeholders */
@@ -352,34 +350,49 @@ const submitBooking = async () => {
   bottom: 15px;
   right: 15px;
   background: white;
-  padding: 5px 12px;
-  border-radius: 20px;
+  padding: 6px 14px;
+  border-radius: 24px;
   font-weight: bold;
   color: #2c3e50;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+  font-size: 0.95rem;
 }
 
-.room-details { padding: 1.5rem; flex-grow: 1; display: flex; flex-direction: column; }
+.room-details { padding: 2rem; flex-grow: 1; display: flex; flex-direction: column; }
 .room-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.5rem; }
-.room-header h3 { font-size: 1.4rem; color: #2c3e50; }
+.room-header h3 { font-size: 1.5rem; color: #2c3e50; font-weight: 600; }
 .meta { font-size: 0.85rem; color: #888; }
-.desc { font-size: 0.95rem; color: #555; margin-bottom: 1rem; line-height: 1.5; }
+.desc { font-size: 0.95rem; color: #555; margin-bottom: 1.25rem; line-height: 1.6; }
 
 .amenities { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem; }
-.amenity-badge { background: #f0f0f0; font-size: 0.8rem; padding: 4px 8px; border-radius: 4px; color: #555; }
+.amenity-badge { background: #f5f5f5; font-size: 0.8rem; padding: 5px 10px; border-radius: 6px; color: #555; transition: background 0.2s; }
+.amenity-badge:hover { background: #e8e8e8; }
 
 .select-btn {
   margin-top: auto;
   width: 100%;
-  padding: 0.8rem;
+  padding: 0.9rem;
   background: #2c3e50;
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background 0.3s;
+  transition: all 0.2s ease;
+  font-weight: 600;
+  box-shadow: 0 4px 6px rgba(44, 62, 80, 0.2);
+  border-bottom: 3px solid rgba(0,0,0,0.2);
 }
-.select-btn:hover { background: #D59F4A; }
+.select-btn:hover { 
+  background: #D59F4A; 
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(213, 159, 74, 0.3);
+  border-bottom: 3px solid rgba(0,0,0,0.2);
+}
+.select-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 4px rgba(213, 159, 74, 0.2);
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+}
 
 /* --- Booking Engine (Split Layout) --- */
 .booking-section {
@@ -401,9 +414,17 @@ const submitBooking = async () => {
 .form-group { display: flex; flex-direction: column; margin-bottom: 1.2rem; flex: 1; }
 label { font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem; }
 input, select, textarea {
-  padding: 0.8rem; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem;
+  padding: 0.9rem; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.03);
 }
-input:focus, select:focus, textarea:focus { outline: none; border-color: #D59F4A; }
+input:focus, select:focus, textarea:focus { 
+  outline: none; 
+  border-color: #D59F4A; 
+  box-shadow: 
+    0 0 0 4px rgba(213, 159, 74, 0.15),
+    inset 0 1px 2px rgba(0,0,0,0.03); 
+  transform: translateY(-1px);
+}
 
 textarea {
   min-height: 80px;
@@ -411,20 +432,34 @@ textarea {
 }
 
 .confirm-btn {
-  background: #D59F4A; color: white; width: 100%; padding: 1rem;
-  border: none; border-radius: 6px; font-size: 1.1rem; font-weight: bold;
-  cursor: pointer; margin-top: 1rem;
+  background: #D59F4A; color: white; width: 100%; padding: 1.1rem;
+  border: none; border-radius: 10px; font-size: 1.1rem; font-weight: bold;
+  cursor: pointer; margin-top: 1rem; transition: all 0.2s ease;
+  box-shadow: 0 4px 10px rgba(213, 159, 74, 0.3);
+  border-bottom: 3px solid rgba(0,0,0,0.15);
 }
-.confirm-btn:hover:not(:disabled) { background: #b58334; }
-.confirm-btn:disabled { background: #ccc; cursor: not-allowed; }
+.confirm-btn:hover:not(:disabled) { 
+  background: #c7923e; 
+  transform: translateY(-2px); 
+  box-shadow: 0 8px 16px rgba(213, 159, 74, 0.4);
+  border-bottom: 3px solid rgba(0,0,0,0.15); 
+}
+.confirm-btn:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: 0 2px 4px rgba(213, 159, 74, 0.2);
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+.confirm-btn:disabled { background: #ccc; cursor: not-allowed; border: none; }
 
 /* Summary Card Styles (Sticky) */
 .summary-card {
   background: #fdfdfd;
-  padding: 2rem;
-  border-radius: 12px;
-  border: 1px solid #eee;
-  box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+  padding: 2.5rem;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.8);
+  box-shadow: 
+    0 15px 30px rgba(0,0,0,0.08),
+    0 5px 15px rgba(0,0,0,0.04);
   position: sticky;
   top: 140px;
 }

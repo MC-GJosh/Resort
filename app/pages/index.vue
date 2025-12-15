@@ -33,6 +33,15 @@ const facilities = [
     link: '/pickleball',
     buttonText: 'Book a Court',
     disabled: false
+  },
+  {
+    id: 'pool',
+    title: 'Swimming Pool',
+    description: 'Dive into relaxation and fun at our swimming pool. Perfect for families, fitness enthusiasts, and those looking to cool off. Our Learn to Swim Program is coming soon—professional instruction for all ages and skill levels in a safe, supportive environment.',
+    image: '/swimming.jpg',
+    link: '/pool',
+    buttonText: 'View Pool',
+    disabled: false
   }
 ];
 </script>
@@ -111,9 +120,31 @@ html, body {
   font-size: 2rem; margin-bottom: 2rem; text-shadow: 1px 1px 5px rgba(0,0,0,0.5); font-weight: 300;
 }
 .cta-btn {
-  padding: 12px 30px; background-color: #1d3557; color: white; border: none; border-radius: 6px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: background 0.3s;
+  padding: 12px 28px;
+  background-color: #1d3557;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  border-bottom: 3px solid rgba(0,0,0,0.3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
-.cta-btn:hover { background-color: #D59F4A; }
+.cta-btn:hover {
+  background-color: #D59F4A;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 15px rgba(213, 159, 74, 0.4);
+  border-bottom: 4px solid rgba(0,0,0,0.2);
+}
+.cta-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 5px rgba(213, 159, 74, 0.3);
+  border-bottom: 2px solid rgba(0,0,0,0.1);
+}
 
 /* ------------------ Facilities Section ------------------ */
 .facilities-section {
@@ -129,8 +160,9 @@ html, body {
 .facility-row {
   display: flex;
   align-items: center;
-  gap: 4rem;
-  margin-bottom: 6rem;
+  gap: 5rem;
+  margin-bottom: 7rem;
+  transition: all 0.3s ease;
 }
 
 .facility-row:last-child {
@@ -146,8 +178,12 @@ html, body {
   flex: 1;
   height: 300px;
   overflow: hidden;
-  border-radius: 8px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  border-radius: 20px;
+  box-shadow: 
+    0 10px 30px rgba(0,0,0,0.08),
+    0 4px 6px rgba(0,0,0,0.04);
+  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+  position: relative;
 }
 
 .facility-image img {
@@ -157,45 +193,65 @@ html, body {
   transition: transform 0.5s ease;
 }
 
+.facility-image:hover {
+  box-shadow: 
+    0 20px 40px rgba(0,0,0,0.12),
+    0 8px 16px rgba(0,0,0,0.08);
+  transform: translateY(-8px);
+}
+
 .facility-image:hover img {
-  transform: scale(1.05);
+  transform: scale(1.08);
 }
 
 .facility-content {
   flex: 1;
-  padding: 1rem;
+  padding: 2rem;
 }
 
 .facility-content h3 {
-  font-size: 2.5rem;
+  font-size: 2.8rem;
   color: #1d3557;
-  margin-bottom: 1.5rem;
-  font-family: 'Georgia', serif; /* Or any serif font to match the reference image style */
+  margin-bottom: 1.8rem;
+  font-family: 'Georgia', serif;
+  font-weight: 600;
+  letter-spacing: -0.5px;
 }
 
 .facility-content p {
   font-size: 1.1rem;
   color: #555;
-  line-height: 1.8;
-  margin-bottom: 2rem;
+  line-height: 1.9;
+  margin-bottom: 2.5rem;
 }
 
 .facility-btn {
   display: inline-block;
-  padding: 12px 28px;
-  background-color: #0077b6; /* Matches the blue in the reference image */
+  padding: 14px 32px;
+  background-color: #1d3557;
   color: white;
   text-decoration: none;
   font-weight: bold;
-  border-radius: 4px;
+  border-radius: 8px;
   text-transform: uppercase;
   font-size: 0.9rem;
   letter-spacing: 1px;
-  transition: background-color 0.3s;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 6px rgba(29, 53, 87, 0.2);
+  border-bottom: 3px solid rgba(0,0,0,0.1);
 }
 
 .facility-btn:hover {
-  background-color: #023e8a;
+  background-color: #D59F4A;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(213, 159, 74, 0.3);
+  border-bottom: 3px solid rgba(0,0,0,0.15);
+}
+
+.facility-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 4px rgba(213, 159, 74, 0.2);
+  border-bottom: 1px solid rgba(0,0,0,0.1);
 }
 
 .facility-btn.disabled {

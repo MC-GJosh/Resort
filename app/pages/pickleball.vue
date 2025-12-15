@@ -89,9 +89,7 @@ const handleBookingSubmit = async (bookingData) => {
           <p>Choose your preferred court for an amazing game.</p>
         </div>
 
-        <div v-if="loading" class="loading-state">
-          <p>Loading courts...</p>
-        </div>
+        <LoadingSpinner v-if="loading" />
 
         <div v-else class="courts-grid">
           <div 
@@ -169,33 +167,35 @@ const handleBookingSubmit = async (bookingData) => {
 
 .section-title { text-align: center; margin-bottom: 3rem; }
 
-.loading-state {
-  text-align: center;
-  padding: 3rem;
-  color: #666;
-}
+
 
 .courts-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 1.5rem;
-  margin-bottom: 4rem;
+  gap: 2rem;
+  margin-bottom: 5rem;
 }
 
 .court-card {
   background: white;
-  border-radius: 12px;
+  border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-  transition: transform 0.3s;
-  border: 2px solid transparent;
+  box-shadow: 
+    0 10px 25px rgba(0,0,0,0.08),
+    0 4px 10px rgba(0,0,0,0.04);
+  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+  border: 1px solid rgba(255,255,255,0.6);
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 .court-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  transform: translateY(-8px);
+  box-shadow: 
+    0 20px 40px rgba(0,0,0,0.12),
+    0 8px 16px rgba(0,0,0,0.08);
+  border-color: rgba(213, 159, 74, 0.2);
 }
 
 /* Image Placeholders */
@@ -212,34 +212,49 @@ const handleBookingSubmit = async (bookingData) => {
   bottom: 15px;
   right: 15px;
   background: white;
-  padding: 5px 12px;
-  border-radius: 20px;
+  padding: 6px 14px;
+  border-radius: 24px;
   font-weight: bold;
   color: #2c3e50;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+  font-size: 0.95rem;
 }
 
-.court-details { padding: 1.5rem; flex-grow: 1; display: flex; flex-direction: column; }
+.court-details { padding: 2rem; flex-grow: 1; display: flex; flex-direction: column; }
 .court-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.5rem; }
-.court-header h3 { font-size: 1.2rem; color: #2c3e50; }
+.court-header h3 { font-size: 1.3rem; color: #2c3e50; font-weight: 600; }
 .meta { font-size: 0.8rem; color: #888; }
-.desc { font-size: 0.9rem; color: #555; margin-bottom: 1rem; line-height: 1.5; }
+.desc { font-size: 0.95rem; color: #555; margin-bottom: 1.25rem; line-height: 1.6; }
 
 .features { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem; }
-.feature-badge { background: #f0f0f0; font-size: 0.75rem; padding: 4px 8px; border-radius: 4px; color: #555; }
+.feature-badge { background: #f5f5f5; font-size: 0.75rem; padding: 5px 10px; border-radius: 6px; color: #555; transition: background 0.2s; }
+.feature-badge:hover { background: #e8e8e8; }
 
 .select-btn {
   margin-top: auto;
   width: 100%;
-  padding: 0.8rem;
+  padding: 0.9rem;
   background: #2c3e50;
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background 0.3s;
+  transition: all 0.2s ease;
+  font-weight: 600;
+  box-shadow: 0 4px 6px rgba(44, 62, 80, 0.2);
+  border-bottom: 3px solid rgba(0,0,0,0.2);
 }
-.select-btn:hover { background: #D59F4A; }
+.select-btn:hover { 
+  background: #D59F4A; 
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(213, 159, 74, 0.3);
+  border-bottom: 3px solid rgba(0,0,0,0.2);
+}
+.select-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 4px rgba(213, 159, 74, 0.2);
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+}
 
 /* Mobile */
 @media (max-width: 1024px) {

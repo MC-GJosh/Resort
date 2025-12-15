@@ -56,6 +56,7 @@ onUnmounted(() => {
             <nav class="desktop-nav">
                 <ul>
                     <li><NuxtLink to="/">Home</NuxtLink></li>
+                    <li><NuxtLink to="/pool">Pool</NuxtLink></li>
                     <li><NuxtLink to="/pickleball">Pickleball</NuxtLink></li>
                     <li><NuxtLink to="/function-hall">Function Hall</NuxtLink></li>
                     <li><NuxtLink to="/hotel-room">Room</NuxtLink></li>
@@ -81,6 +82,7 @@ onUnmounted(() => {
         <div class="mobile-nav" :class="{ 'open': mobileMenuOpen }">
             <ul>
                 <li><NuxtLink to="/" @click="closeMobileMenu">Home</NuxtLink></li>
+                <li><NuxtLink to="/pool" @click="closeMobileMenu">Pool</NuxtLink></li>
                 <li><NuxtLink to="/pickleball" @click="closeMobileMenu">Pickleball</NuxtLink></li>
                 <li><NuxtLink to="/function-hall" @click="closeMobileMenu">Function Hall</NuxtLink></li>
                 <li><NuxtLink to="/hotel-room" @click="closeMobileMenu">Room</NuxtLink></li>
@@ -112,7 +114,12 @@ onUnmounted(() => {
   background-color: transparent; color: white; z-index: 1000;
   padding: 2rem 0; transition: padding 0.3s, background-color 0.3s;
 }
-.floating-header.scrolled { padding: 1rem 0; background-color: rgba(29, 53, 87, 0.95); }
+.floating-header.scrolled { 
+  padding: 1rem 0; 
+  background-color: rgba(29, 53, 87, 0.95); 
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
 .container {
   max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 0 2rem;
   position: relative;
@@ -127,8 +134,8 @@ onUnmounted(() => {
 
 /* Desktop Navigation */
 .desktop-nav ul { list-style: none; display: flex; gap: 2rem; margin: 0; padding: 0; align-items: center; }
-.desktop-nav a { color: white; text-decoration: none; font-weight: bold; font-size: 1.1rem; transition: color 0.3s; }
-.desktop-nav a:hover { color: #D59F4A; }
+.desktop-nav a { color: white; text-decoration: none; font-weight: bold; font-size: 1.05rem; transition: all 0.3s ease; position: relative; }
+.desktop-nav a:hover { color: #D59F4A; transform: translateY(-1px); }
 
 /* User menu */
 .user-menu {
